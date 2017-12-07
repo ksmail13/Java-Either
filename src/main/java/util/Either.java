@@ -10,21 +10,34 @@ import javax.xml.crypto.Data;
  * either like scala
  * 
  * @author minkyu.kim
- *
- * @param <L> Left (error type)
- * @param <R> Right (result type)
  */
-public interface Either<L, R> {
-	
-	static <L, R> Left<L, R> left(L left) {
+public interface Either {
+
+    /**
+     * create left instance
+     * @param left error data
+     * @param <L> error type
+     * @return left instance
+     */
+	static <L> Left left(L left) {
 		return new Left<>(left);
 	}
-	
-	static <L, R> Right<L, R> right(R right) {
+
+    /**
+     * create right instance
+     * @param right result data
+     * @param <R> result type
+     * @return result instance
+     */
+	static <R> Right right(R right) {
 		return new Right<>(right);
 	}
-	
-	class Left<L, R> implements Either<L, Object> {
+
+    /**
+     * Save error result
+     * @param <L> error type
+     */
+    final class Left<L> implements Either {
 		private final Optional<L> left;
 		private Left(L left) {
 			this.left = Optional.ofNullable(left);
@@ -35,9 +48,12 @@ public interface Either<L, R> {
 			return left;
 		}
 	}
-	
-	
-	class Right<L, R> implements Either<L, R> {
+
+    /**
+     * Save result
+     * @param <R> result type
+     */
+	final class Right<R> implements Either {
 		
 		private final Optional<R> right;
 		private Right(R right) {
@@ -48,14 +64,13 @@ public interface Either<L, R> {
 		public Optional<R> data() {
 			return right;
 		}
-
 	}
 	
-	default Optional<R> data() {
+	default <R> Optional<R> data() {
 		return Optional.empty();
 	}
 	
-	default Optional<L> error() {
+	default <L> Optional<L> error() {
 		return Optional.empty();	
 	}
 	
@@ -68,22 +83,24 @@ public interface Either<L, R> {
 	}
 	
 	
-	default <B> Either<L, B> flatMap(Function<R, Either<L, B>> mappingFunction) {
-		return null;
-	}
-
-	default <B> Either<L, B> map(Function<R, B> mappingFunction) {
+	default <R> Either flatMap(Function<R, Either> mappingFunction) {
 		if(isRight()) {
-			return flatMap(r -> Either.right(mappingFunction.apply(r)));
-		} else {
+		    Optional<R> data = data();
+		    return data.flatMap(r -> Optional.ofNullable(mappingFunction.apply(r))).orElse(Either.left(null));
+        } else {
 		    return error().flatMap(l -> Optional.of(Either.left(l))).orElse(Either.left(null));
         }
 	}
+
+	default <R, B> Either map(Function<R, B> mappingFunction) {
+		return flatMap(r -> Either.right(mappingFunction.apply((R) r)));
+	}
 	
-	default void foreach(Consumer<R> body) {
-		if(isRight()) {
-			
-		}
+	default <R> void foreach(Consumer<R> body) {
+		flatMap(r -> {
+		    body.accept((R) r);
+            return null;
+		});
 	}
 
 }
