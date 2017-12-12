@@ -4,8 +4,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import javax.xml.crypto.Data;
-
 /**
  * either like scala
  *
@@ -16,8 +14,8 @@ public interface Either {
     /**
      * create left instance
      *
-     * @param left error data
-     * @param <L>  error type
+     * @param left left right
+     * @param <L>  left type
      * @return left instance
      */
     static <L> Left left(L left) {
@@ -27,7 +25,7 @@ public interface Either {
     /**
      * create right instance
      *
-     * @param right result data
+     * @param right result right
      * @param <R>   result type
      * @return result instance
      */
@@ -36,9 +34,9 @@ public interface Either {
     }
 
     /**
-     * Save error result
+     * Save left result
      *
-     * @param <L> error type
+     * @param <L> left type
      */
     final class Left<L> implements Either {
         private final Optional<L> left;
@@ -48,7 +46,7 @@ public interface Either {
         }
 
         @Override
-        public Optional<L> error() {
+        public Optional<L> left() {
             return left;
         }
     }
@@ -67,16 +65,16 @@ public interface Either {
         }
 
         @Override
-        public Optional<R> data() {
+        public Optional<R> right() {
             return right;
         }
     }
 
-    default <R> Optional<R> data() {
+    default <R> Optional<R> right() {
         return Optional.empty();
     }
 
-    default <L> Optional<L> error() {
+    default <L> Optional<L> left() {
         return Optional.empty();
     }
 
@@ -91,10 +89,10 @@ public interface Either {
 
     default <R> Either flatMap(Function<R, Either> mappingFunction) {
         if (isRight()) {
-            Optional<R> data = data();
+            Optional<R> data = right();
             return data.flatMap(r -> Optional.ofNullable(mappingFunction.apply(r))).orElse(Either.left(null));
         } else {
-            return error().flatMap(l -> Optional.of(Either.left(l))).orElse(Either.left(null));
+            return left().flatMap(l -> Optional.of(Either.left(l))).orElse(Either.left(null));
         }
     }
 
