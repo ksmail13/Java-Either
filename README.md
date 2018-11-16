@@ -8,4 +8,4 @@ over Jdk 1.8
 
 ---
 
-writer MinKyu Kim <ksmail13@gmail.com>
+writer MinKyu Kim
